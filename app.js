@@ -5,6 +5,7 @@ const express = require("express");
 const path = require("path");
 const logger = require("morgan");
 const passport = require("passport");
+var cors = require("cors");
 
 const { connectDB, configPassport } = require("./config");
 
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(passport.initialize());
+
+app.use(cors());
 
 // connect database
 connectDB();
