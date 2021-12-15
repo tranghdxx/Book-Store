@@ -67,6 +67,7 @@ const addOne = async (req, res) => {
     });
   }
   const {
+    code,
     name,
     author,
     description,
@@ -78,8 +79,14 @@ const addOne = async (req, res) => {
     totalPage,
     dimensions,
     publisher,
+    publishDate
   } = req.body;
 
+  if (!code) {
+    return res.status(400).json({
+      errors: [{ field: "code", message: "code field is required" }],
+    });
+  }
   if (!name) {
     return res.status(400).json({
       errors: [{ field: "name", message: "name field is required" }],
@@ -88,6 +95,11 @@ const addOne = async (req, res) => {
   if (!author) {
     return res.status(400).json({
       errors: [{ field: "author", message: "author field is required" }],
+    });
+  }
+  if (!publishDate) {
+    return res.status(400).json({
+      errors: [{ field: "publishDate", message: "publishDate field is required" }],
     });
   }
   if (!description) {
@@ -109,6 +121,7 @@ const addOne = async (req, res) => {
   });
 
   const newProduct = new Product({
+    code,
     name,
     author,
     description,
@@ -121,6 +134,7 @@ const addOne = async (req, res) => {
     totalPage,
     dimensions,
     publisher,
+    publishDate
   });
 
   await newProduct.save();
@@ -148,9 +162,11 @@ const updateOne = async (req, res) => {
   const { id } = req.params;
 
   const {
+    code,
     name,
     author,
     description,
+    publishDate,
     categoryId,
     subcategoryId,
     brandId,
@@ -166,12 +182,14 @@ const updateOne = async (req, res) => {
 
   let updateData = {};
 
+  if (code) updateData = { ...updateData, code };
   if (name) updateData = { ...updateData, name };
   if (author) updateData = { ...updateData, auth };
   if (categoryId) updateData = { ...updateData, categoryId };
   if (subcategoryId) updateData = { ...updateData, subcategoryId };
   if (brandId) updateData = { ...updateData, brandId };
   if (price) updateData = { ...updateData, price };
+  if (publishDate) updateData = { ...updateData, publishDate };
   if (amount) updateData = { ...updateData, amount };
   if (description) updateData = { ...updateData, description };
   if (images.length > 0) updateData = { ...updateData, images };
@@ -247,10 +265,7 @@ const getById = async (req, res) => {
 
     const productsRelated = await Product.find({
       isDeleted: false || undefined,
-      categoryId: product.categoryId._id,
-      _id: {
-        $nin: [product._id],
-      },
+      categoryId: product.categoryId
     })
       .populate("brandId", ["_id", "name"])
       .populate("categoryId", ["_id", "name"])
