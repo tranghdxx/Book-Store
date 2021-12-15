@@ -110,7 +110,7 @@ const updateOne = async (req, res) => {
       startAt,
       endAt,
     } = req.body;
-    console.log(req.body);
+
     let data = {};
     if (startAt) {
       const _startAt = startAt.split("/");
@@ -151,6 +151,7 @@ const updateOne = async (req, res) => {
       new: true,
       upsert: true,
     });
+    
     const _discount = await Discount.findById(discount._id)
       .populate("category", "name")
       .populate("brand", "name")

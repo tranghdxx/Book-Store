@@ -68,6 +68,7 @@ const addOne = async (req, res) => {
   }
   const {
     name,
+    author,
     description,
     categoryId,
     subcategoryId,
@@ -84,6 +85,11 @@ const addOne = async (req, res) => {
       errors: [{ field: "name", message: "name field is required" }],
     });
   }
+  if (!author) {
+    return res.status(400).json({
+      errors: [{ field: "author", message: "author field is required" }],
+    });
+  }
   if (!description) {
     return res.status(400).json({
       errors: [
@@ -96,13 +102,6 @@ const addOne = async (req, res) => {
       errors: [{ field: "categoryId", message: "category field is required" }],
     });
   }
-  // if (!describeLink) {
-  //   return res.status(400).json({
-  //     errors: [
-  //       { field: "describeLink", message: "describe field is required" },
-  //     ],
-  //   });
-  // }
 
   let images = [];
   req.files.forEach((file) => {
@@ -111,6 +110,7 @@ const addOne = async (req, res) => {
 
   const newProduct = new Product({
     name,
+    author,
     description,
     images,
     categoryId,
@@ -149,13 +149,13 @@ const updateOne = async (req, res) => {
 
   const {
     name,
+    author,
     description,
     categoryId,
     subcategoryId,
     brandId,
     price,
     amount,
-    describeLink,
   } = req.body;
 
   let images = [];
@@ -167,13 +167,13 @@ const updateOne = async (req, res) => {
   let updateData = {};
 
   if (name) updateData = { ...updateData, name };
+  if (author) updateData = { ...updateData, auth };
   if (categoryId) updateData = { ...updateData, categoryId };
   if (subcategoryId) updateData = { ...updateData, subcategoryId };
   if (brandId) updateData = { ...updateData, brandId };
   if (price) updateData = { ...updateData, price };
   if (amount) updateData = { ...updateData, amount };
   if (description) updateData = { ...updateData, description };
-  if (describeLink) updateData = { ...updateData, describeLink };
   if (images.length > 0) updateData = { ...updateData, images };
 
   const product = await Product.findByIdAndUpdate(id, updateData, {

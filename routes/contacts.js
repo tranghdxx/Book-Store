@@ -10,6 +10,10 @@ router
   .get(isAuth, isAdmin, contactController.getMany)
   .post(contactController.addOne);
 
-router.route("/:id").delete(isAuth, isAdmin, contactController.deleteOne);
+
+router
+  .route("/:id")
+  .put(isAuth, isAdmin, contactController.updateOne)
+  .delete(isAuth, isAdmin, contactController.deleteOne);
 
 module.exports = router;

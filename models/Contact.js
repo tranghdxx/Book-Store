@@ -17,6 +17,15 @@ const contactSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  note: {
+    type: String,
+    required: false,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "appointment", "success", "cancel"],
+    default: "pending",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
