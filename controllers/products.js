@@ -208,7 +208,6 @@ const getById = async (req, res) => {
         },
       },
     ]);
-
     const _comments = await Comment.populate(comments, [
       { path: "user", select: "name" },
       { path: "replies.user", select: "name" },
@@ -221,7 +220,6 @@ const getById = async (req, res) => {
       .lean();
 
     let _product = { ...product };
-
     const discounts = await Discount.find().lean();
 
     let _isDiscount = discounts.find(
@@ -234,6 +232,7 @@ const getById = async (req, res) => {
             : "") ||
         e.applyFor === "all"
     );
+
     if (typeof _isDiscount !== "undefined") {
       let priceDiscount = _isDiscount.discountPrice
         ? product.price - _isDiscount.discountPrice < 0
@@ -246,10 +245,10 @@ const getById = async (req, res) => {
     }
 
     const productsRelated = await Product.find({
-      isDeleted: false || undefined,
-      categoryId: product.categoryId._id,
+      isDeleted: false,
+      categoryId: product.categoryId,
       _id: {
-        $nin: [product._id],
+        $nin: id,
       },
     })
       .populate("brandId", ["_id", "name"])
