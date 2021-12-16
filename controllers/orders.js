@@ -41,6 +41,13 @@ const addOne = async (req, res) => {
       .populate("subcategoryId", ["_id", "name"])
       .sort({ createdAt: -1 })
       .lean();
+
+    products.map(async (e) => {
+      const pr = await Product.findById(e.productId);
+      pr.amount = pr.amount - e.amount;
+      pr.save();
+    });
+
     const __products = await getDiscountPrice(_products, discounts);
     // send email order
     const order = await Order.findById(newOrder._id)

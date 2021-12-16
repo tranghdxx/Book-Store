@@ -79,7 +79,7 @@ const addOne = async (req, res) => {
     totalPage,
     dimensions,
     publisher,
-    publishDate
+    publishDate,
   } = req.body;
 
   if (!code) {
@@ -99,7 +99,9 @@ const addOne = async (req, res) => {
   }
   if (!publishDate) {
     return res.status(400).json({
-      errors: [{ field: "publishDate", message: "publishDate field is required" }],
+      errors: [
+        { field: "publishDate", message: "publishDate field is required" },
+      ],
     });
   }
   if (!description) {
@@ -119,6 +121,14 @@ const addOne = async (req, res) => {
   req.files.forEach((file) => {
     images = [...images, file.filename];
   });
+  let _publishDate;
+  if (publishDate) {
+    let _date = publishDate.split("/");
+    _publishDate =
+      _date.length > 1
+        ? new Date(_date[2], _date[1] - 1, _date[0])
+        : new Date(publishDate);
+  }
 
   const newProduct = new Product({
     code,
@@ -134,7 +144,7 @@ const addOne = async (req, res) => {
     totalPage,
     dimensions,
     publisher,
-    publishDate
+    publishDate: _publishDate,
   });
 
   await newProduct.save();
@@ -174,6 +184,14 @@ const updateOne = async (req, res) => {
     amount,
   } = req.body;
 
+  if (publishDate) {
+    let _date = publishDate.split("/");
+    _publishDate =
+      _date.length > 1
+        ? new Date(_date[2], _date[1] - 1, _date[0])
+        : new Date(publishDate);
+  }
+
   let images = [];
   if (req.files.length > 0)
     req.files.forEach((file) => {
@@ -184,12 +202,12 @@ const updateOne = async (req, res) => {
 
   if (code) updateData = { ...updateData, code };
   if (name) updateData = { ...updateData, name };
-  if (author) updateData = { ...updateData, auth };
+  if (author) updateData = { ...updateData, author };
   if (categoryId) updateData = { ...updateData, categoryId };
   if (subcategoryId) updateData = { ...updateData, subcategoryId };
   if (brandId) updateData = { ...updateData, brandId };
   if (price) updateData = { ...updateData, price };
-  if (publishDate) updateData = { ...updateData, publishDate };
+  if (_publishDate) updateData = { ...updateData, publishDate: _publishDate };
   if (amount) updateData = { ...updateData, amount };
   if (description) updateData = { ...updateData, description };
   if (images.length > 0) updateData = { ...updateData, images };
