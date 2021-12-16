@@ -3,16 +3,10 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  // host: "smtp.ethereal.email",
-  // port: 587,
-  // secure: false, // true for 465, false for other ports
-  // auth: {
-  //   user: "nhasachbinhminh09@gmail.com", // generated ethereal user
-  //   pass: "nhasach!", // generated ethereal password
-  // },
   service: "gmail",
   host: "smtp.gmail.com",
   port: 465,
+  secure: true,
   auth: {
     user: "nhasachbinhminh09@gmail.com",
     pass: "nhasach!",
@@ -22,7 +16,7 @@ const transporter = nodemailer.createTransport({
 const sendMail = async (to, subject, data) => {
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: "MIN Store", // sender address
+    from: "Nhà sách Bình Minh", // sender address
     to,
     subject,
     html: data,
@@ -68,9 +62,9 @@ const sendMailOrder = async (to, order, products) => {
     }
 
     let info = await transporter.sendMail({
-      from: "MIN Store", // sender address
+      from: "Nhà sách Bình Minh", // sender address
       to,
-      subject: "Đơn hàng từ MIN Store",
+      subject: "Đơn hàng từ nhà sách Bình Minh",
       html: `<div style="font-size: 20px">
           <div style= "font-size: 24px; font-weight: 1000">
             Thông tin người nhận

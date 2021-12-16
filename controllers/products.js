@@ -264,8 +264,11 @@ const getById = async (req, res) => {
     }
 
     const productsRelated = await Product.find({
-      isDeleted: false || undefined,
-      categoryId: product.categoryId
+      isDeleted: false,
+      categoryId: product.categoryId,
+      _id: {
+        $nin: id,
+      },
     })
       .populate("brandId", ["_id", "name"])
       .populate("categoryId", ["_id", "name"])
