@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  host: "smtp.gmail.com",
+  host: "smtp.ethereal.email",
   port: 465,
   secure: true,
   auth: {
@@ -15,16 +15,23 @@ const transporter = nodemailer.createTransport({
 
 const sendMail = async (to, subject, data) => {
   // send mail with defined transport object
-  let info = await transporter.sendMail({
-    from: "Nhà sách Bình Minh", // sender address
-    to,
-    subject,
+  const mailOptions = {
+    from: "nhasachbinhminh09@gmail.com",
+    to: to,
+    subject: subject,
     html: data,
-  });
+  }
 
-  // Preview only available when sending through an Ethereal account
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+  await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error.message);
+      return process.exit(1);
+    }
+
+    console.log('Message sent successfully!');
+    // only needed when using pooled connections
+    transporter.close();
+  });
 };
 
 function formatPrice(x) {
@@ -45,8 +52,8 @@ const sendMailOrder = async (to, order, products) => {
         <td style="border: 1px solid black;">${e.productId.name}</td>
         <td style="border: 1px solid black;">${e.amount}</td>
         <td style="border: 1px solid black;">${formatPrice(
-          tmp.priceDiscount ? tmp.priceDiscount : tmp.price
-        )}₫</td>
+        tmp.priceDiscount ? tmp.priceDiscount : tmp.price
+      )}₫</td>
       </tr>`;
     });
 
@@ -61,8 +68,8 @@ const sendMailOrder = async (to, order, products) => {
       }, 0);
     }
 
-    let info = await transporter.sendMail({
-      from: "Nhà sách Bình Minh", // sender address
+    const mailOptions = {
+      from: "nhasachbinhminh09@gmail.com", // sender address
       to,
       subject: "Đơn hàng từ nhà sách Bình Minh",
       html: `<div style="font-size: 20px">
@@ -95,31 +102,31 @@ const sendMailOrder = async (to, order, products) => {
           <table>
             <tr>
               <td style="font-size: 20px; font-weight:600">Tạm tính</td>
-              <td style="font-size: 20px; font-weight:600">${formatPrice(
-                getTotalTmp()
-              )}₫</td>
+              <td style="font-size: 20px; font-weight:600">${formatPrice(getTotalTmp())}₫</td>
             </tr>
             <tr>
               <td style="font-size: 20px; font-weight:600">Phí ship</td>
-              <td style="font-size: 20px; font-weight:600">${
-                order.shipType === "fast" ? formatPrice(40000) : 0
-              }₫</td>
+              <td style="font-size: 20px; font-weight:600">${order.shipType === "fast" ? formatPrice(40000) : 0}₫</td>
             </tr>
             <tr>
               <td style="font-size: 20px; font-weight:600">Tổng tiền</td>
-              <td style="font-size: 20px; font-weight:600">${formatPrice(
-                order.total
-              )}₫</td>
+              <td style="font-size: 20px; font-weight:600">${formatPrice(order.total)}₫</td>
             </tr>
           </table>
-        </>
-    </div>
-    `,
-    });
+          </>
+        </div>`
+    };
 
-    // Preview only available when sending through an Ethereal account
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-    // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+    await transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error.message);
+        return process.exit(1);
+      }
+
+      console.log('Message sent successfully!');
+      // only needed when using pooled connections
+      transporter.close();
+    });
   } catch (error) {
     console.log(error);
   }
