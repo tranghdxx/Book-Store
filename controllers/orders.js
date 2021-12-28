@@ -472,7 +472,7 @@ const getStatisticalOrdersByPrice = async (req, res) => {
       ]);
     }
 
-    res.json({type, orders});
+    res.json(orders);
   } catch (error) {
     return res.status(500).json(error);
   }
@@ -481,7 +481,7 @@ const getStatisticalOrdersByPrice = async (req, res) => {
 // lấy báo cáo đơn hàng theo tháng, năm
 const getStatisticalOrders = async (req, res) => {
   try {
-    const { month, year } = req.body;
+    const { month, year } = req.query;
     const gteDate = year + "-" + month + "-01";
     let ltDate;
 
@@ -512,6 +512,7 @@ const getStatisticalOrders = async (req, res) => {
           },
           products : {$push: "$products"},
           products_docs: {$push: "$products_docs"},
+          total: { $sum: "$total" },
           count: {$sum: 1}
         },
       },
@@ -520,6 +521,7 @@ const getStatisticalOrders = async (req, res) => {
           status: "$_id.status",
           products: 1,
           products_docs: 1,
+          total: 1,
           count: 1,
           _id: 0
         },
@@ -541,11 +543,12 @@ const getStatisticalOrders = async (req, res) => {
       count: 0
     };
     let bestseller = [];
+    let total = 0;
 
     for(let order of orders) {
       if (order.status == "pending") {
         successData.count = order.count;
-
+        total = order.total;
         const products = _.flatten(order.products);
         const productsDocs = _.uniqBy(_.flatten(order.products_docs), "code");
 
@@ -571,6 +574,7 @@ const getStatisticalOrders = async (req, res) => {
     res.json({
       bestseller,
       ordersByStatus: {
+        total,
         success: successData,
         cancel: cancelData,
         other: otherStatusData

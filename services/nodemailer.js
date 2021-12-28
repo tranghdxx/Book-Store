@@ -100,6 +100,10 @@ const sendMailOrder = async (to, order, products) => {
             ${tableProducts.join("")}
           </table>
           <table>
+          <tr>
+              <td style="font-size: 20px; font-weight:600">Mã code</td>
+              <td style="font-size: 20px; font-weight:600">${order._id}</td>
+            </tr>
             <tr>
               <td style="font-size: 20px; font-weight:600">Tạm tính</td>
               <td style="font-size: 20px; font-weight:600">${formatPrice(getTotalTmp())}₫</td>
