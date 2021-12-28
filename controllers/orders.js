@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const _ = require("lodash");
 
 const Coupon = require("../models/Coupon");
 const Discount = require("../models/Discount");
@@ -100,9 +101,9 @@ function getDiscountPrice(products, discounts) {
             `${e.brand}` === `${products[i].brandId._id}` ||
             `${e.category}` === `${products[i].categoryId._id}` ||
             `${e.subcategory}` ===
-              (Boolean(products[i].subcategoryId)
-                ? `${products[i].subcategoryId._id}`
-                : "") ||
+            (Boolean(products[i].subcategoryId)
+              ? `${products[i].subcategoryId._id}`
+              : "") ||
             e.applyFor === "all"
         );
         if (typeof _isDiscount !== "undefined") {
@@ -111,7 +112,7 @@ function getDiscountPrice(products, discounts) {
               ? 0
               : products[i].price - _isDiscount.discountPrice
             : products[i].price -
-              Math.floor((products[i].price * _isDiscount.discountRate) / 100);
+            Math.floor((products[i].price * _isDiscount.discountRate) / 100);
 
           _products.push({ ...products[i], priceDiscount });
         } else _products.push(products[i]);
@@ -126,6 +127,7 @@ function getDiscountPrice(products, discounts) {
 // thêm đơn hàng không cần đăng nhập
 const addOneNoAuth = async (req, res) => {
   try {
+
     const { email, coupon, products } = req.body;
     const newOrder = new Order({ ...req.body });
     await newOrder.save();
@@ -159,10 +161,11 @@ const addOneNoAuth = async (req, res) => {
     const order = await Order.findById(newOrder._id)
       .populate("products.productId", ["_id", "name", "price"])
       .populate("user", ["name", "email"]);
-    sendMailOrder(email, order, __products);
-    // res.json({ success: true });
+    // sendMailOrder(email, order, __products);
+
+    res.json({ success: true });
   } catch (err) {
-    console.log(err);
+    console.log("error", err);
     return res.status(500).json(err);
   }
 };
@@ -286,8 +289,7 @@ const updateOrder = async (req, res) => {
       updateData = { ...updateData, isPaid };
       orderHistoryData = [
         ...orderHistoryData,
-        `Thay đổi trạng thái thanh toán từ "${
-          order.isPaid ? "Đã thanh toán" : "Chưa thanh toán"
+        `Thay đổi trạng thái thanh toán từ "${order.isPaid ? "Đã thanh toán" : "Chưa thanh toán"
         }" thành "${isPaid ? "Đã thanh toán" : "Chưa thanh toán"}`,
       ];
     }
@@ -295,30 +297,28 @@ const updateOrder = async (req, res) => {
       updateData = { ...updateData, status };
       orderHistoryData = [
         ...orderHistoryData,
-        `Thay đổi trạng thái đơn hàng từ "${
-          order.status === "pending"
-            ? "Đang xử lý"
-            : order.status === "packed"
+        `Thay đổi trạng thái đơn hàng từ "${order.status === "pending"
+          ? "Đang xử lý"
+          : order.status === "packed"
             ? "Đã đóng gói"
             : order.status === "delivered"
-            ? "Đã chuyển hàng"
-            : order.status === "success"
-            ? "Thành công"
-            : order.status === "cancel"
-            ? "Đã hủy"
-            : ""
-        }" thành "${
-          status === "pending"
-            ? "Đang xử lý"
-            : status === "packed"
+              ? "Đã chuyển hàng"
+              : order.status === "success"
+                ? "Thành công"
+                : order.status === "cancel"
+                  ? "Đã hủy"
+                  : ""
+        }" thành "${status === "pending"
+          ? "Đang xử lý"
+          : status === "packed"
             ? "Đã đóng gói"
             : status === "delivered"
-            ? "Đã chuyển hàng"
-            : status === "success"
-            ? "Thành công"
-            : status === "cancel"
-            ? "Đã hủy"
-            : ""
+              ? "Đã chuyển hàng"
+              : status === "success"
+                ? "Thành công"
+                : status === "cancel"
+                  ? "Đã hủy"
+                  : ""
         }`,
       ];
     }
@@ -326,10 +326,8 @@ const updateOrder = async (req, res) => {
       updateData = { ...updateData, shipType };
       orderHistoryData = [
         ...orderHistoryData,
-        `Thay đổi hình thức vận chuyển từ "${
-          shipType === "fast" ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn"
-        }" thành "${
-          shipType === "fast" ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn"
+        `Thay đổi hình thức vận chuyển từ "${shipType === "fast" ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn"
+        }" thành "${shipType === "fast" ? "Giao hàng nhanh" : "Giao hàng tiêu chuẩn"
         }`,
       ];
     }
@@ -406,32 +404,73 @@ const getHistoriesByOrderId = async (req, res) => {
   }
 };
 
-// lấy báo cáo đơn hàng theo ngày, tháng, năm
-const getStatisticalOrders = async (req, res) => {
+// lấy thống kê doanh thu theo ngày, tháng
+const getStatisticalOrdersByPrice = async (req, res) => {
   try {
-    const orders = await Order.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-            day: { $dayOfMonth: "$createdAt" },
-          },
-          total: { $sum: "$total" },
+    const { type } = req.params;
+    let orders;
+
+    if (type === "day") {
+      orders = await Order.aggregate([
+        {
+          $match: {
+            status: "success"
+          }
         },
-      },
-      {
-        $project: {
-          date: {
-            year: "$_id.year",
-            month: "$_id.month",
-            day: "$_id.day",
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+              day: { $dayOfMonth: "$createdAt" },
+            },
+            total: { $sum: "$total" },
           },
-          total: 1,
-          _id: 0,
         },
-      },
-    ]);
+        {
+          $project: {
+            date: {
+              year: "$_id.year",
+              month: "$_id.month",
+              day: "$_id.day",
+            },
+            total: 1,
+            _id: 0,
+          },
+        },
+        { $limit: 15 },
+      ]);
+    }
+
+    if (type === "month") {
+      orders = await Order.aggregate([
+        {
+          $match: {
+            status: "success"
+          }
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+            },
+            total: { $sum: "$total" },
+          },
+        },
+        {
+          $project: {
+            date: {
+              year: "$_id.year",
+              month: "$_id.month",
+            },
+            total: 1,
+            _id: 0,
+          },
+        },
+        { $limit: 12 },
+      ]);
+    }
 
     res.json(orders);
   } catch (error) {
@@ -439,10 +478,114 @@ const getStatisticalOrders = async (req, res) => {
   }
 };
 
+// lấy báo cáo đơn hàng theo tháng, năm
+const getStatisticalOrders = async (req, res) => {
+  try {
+    const { month, year } = req.body;
+    const gteDate = year + "-" + month + "-01";
+    let ltDate;
+
+    if (month == "12") {
+      ltDate = ( +year + 1).toString() + "-01-01";
+    } else {
+      ltDate = year + "-" + ( +month + 1).toString() + "-01";
+    }
+
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          createdAt: {$gte: new Date(gteDate), $lt: new Date(ltDate)},
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'products.productId',
+          foreignField: '_id',
+          as: 'products_docs'
+        }
+      },
+      {
+        $group: {
+          _id: {
+            status: "$status"
+          },
+          products : {$push: "$products"},
+          products_docs: {$push: "$products_docs"},
+          count: {$sum: 1}
+        },
+      },
+      {
+        $project: {
+          status: "$_id.status",
+          products: 1,
+          products_docs: 1,
+          count: 1,
+          _id: 0
+        },
+      },   
+    ]);
+
+    let successData = {
+      status: "success",
+      count: 0
+    };
+
+    let otherStatusData = {
+      status: "other",
+      count: 0
+    };
+
+    let cancelData = {
+      status: "cancel",
+      count: 0
+    };
+    let bestseller = [];
+
+    for(let order of orders) {
+      if (order.status == "pending") {
+        successData.count = order.count;
+
+        const products = _.flatten(order.products);
+        const productsDocs = _.uniqBy(_.flatten(order.products_docs), "code");
+
+        const obj = {};
+        products.forEach((item) => {
+          obj[item.productId] = obj[item.productId] ? obj[item.productId] + 
+          parseInt(item.amount) : parseInt(item.amount);
+        });
+
+        for (item in obj) {
+          const {name, code} = _.find(productsDocs, (obj) => obj._id == item);
+          bestseller.push({ productId: item, amount: obj[item], name, code });
+        }
+
+        bestseller = _.orderBy(bestseller,["amount"], ["desc"]).slice(0, 10);
+      } else if (order.status == "cancel") {
+        cancelData.count = order.count;
+      } else {
+        otherStatusData.count += order.count;
+      }
+    }
+    
+    res.json({
+      bestseller,
+      ordersByStatus: {
+        success: successData,
+        cancel: cancelData,
+        other: otherStatusData
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+};
+
 const objectsEqual = (o1, o2) =>
   typeof o1 === "object" && Object.keys(o1).length > 0
     ? Object.keys(o1).length === Object.keys(o2).length &&
-      Object.keys(o1).every((p) => objectsEqual(o1[p], o2[p]))
+    Object.keys(o1).every((p) => objectsEqual(o1[p], o2[p]))
     : o1 === o2;
 
 const arraysEqual = (a1, a2) =>
@@ -459,4 +602,5 @@ module.exports = {
   getHistoriesByOrderId,
   deleteOne,
   getStatisticalOrders,
+  getStatisticalOrdersByPrice,
 };
