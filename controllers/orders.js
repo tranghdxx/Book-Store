@@ -414,7 +414,7 @@ const getStatisticalOrdersByPrice = async (req, res) => {
       orders = await Order.aggregate([
         {
           $match: {
-            status: "success"
+            status: "pending"
           }
         },
         {
@@ -472,7 +472,7 @@ const getStatisticalOrdersByPrice = async (req, res) => {
       ]);
     }
 
-    res.json(orders);
+    res.json({type, orders});
   } catch (error) {
     return res.status(500).json(error);
   }
