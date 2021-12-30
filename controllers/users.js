@@ -7,12 +7,10 @@ const { sendMail } = require("../services/nodemailer");
 // get toàn bộ users
 const getMany = async (req, res) => {
   try {
-    let { $limit, $skip, $sort } = req.query;
+    let { $sort } = req.query;
     // await User.find({ _id: { $ne: req.user.id } }) // find all users not include current user
     const users = await User.find()
-      .sort({ createdAt: $sort || -1 })
-      .skip($skip || 0)
-      .limit($limit || 10);
+      .sort({ createdAt: $sort || -1 });
 
     res.json(users);
   } catch (err) {

@@ -16,7 +16,8 @@ router
   .post(isAuth, isAdmin, orderController.addOneByAdmin);
 
 router
-  .route("/:id/")
+  .route("/:id")
+  .get(isAuth, isAdmin, orderController.getById)
   .delete(isAuth, isAdmin, orderController.deleteOne)
   .put(isAuth, isAdmin, orderController.updateOrder);
 

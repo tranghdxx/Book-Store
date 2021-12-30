@@ -91,6 +91,21 @@ const getAllOfUser = async (req, res) => {
   }
 };
 
+// lấy đơn hàng theo id
+const getById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id)
+    .populate("products.productId", ["name", "price", "images"])
+    .populate("user", ["name", "email"]);
+
+    res.json(order);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json(err);
+  }
+};
+
 function getDiscountPrice(products, discounts) {
   let _products = [];
   return new Promise((resolve, reject) => {
@@ -597,6 +612,7 @@ const arraysEqual = (a1, a2) =>
 
 module.exports = {
   addOne,
+  getById,
   getAllOfUser,
   getAll,
   addOneNoAuth,

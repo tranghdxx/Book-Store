@@ -23,7 +23,7 @@ const contactSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "appointment", "success", "cancel"],
+    enum: ["0", "1", "2", "3"],
     default: "pending",
   },
   createdAt: {
