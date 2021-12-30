@@ -429,7 +429,7 @@ const getStatisticalOrdersByPrice = async (req, res) => {
       orders = await Order.aggregate([
         {
           $match: {
-            status: "pending"
+            status: "success"
           }
         },
         {
@@ -453,7 +453,8 @@ const getStatisticalOrdersByPrice = async (req, res) => {
             _id: 0,
           },
         },
-        { $limit: 15 },
+        { $sort : { date : -1 } },
+        { $limit: 12 },
       ]);
     }
 
@@ -561,7 +562,7 @@ const getStatisticalOrders = async (req, res) => {
     let total = 0;
 
     for(let order of orders) {
-      if (order.status == "pending") {
+      if (order.status == "success") {
         successData.count = order.count;
         total = order.total;
         const products = _.flatten(order.products);
