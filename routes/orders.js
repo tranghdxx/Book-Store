@@ -17,7 +17,7 @@ router
 
 router
   .route("/:id")
-  .get(isAuth, isAdmin, orderController.getById)
+  .get(isAuth, orderController.getById)
   .delete(isAuth, isAdmin, orderController.deleteOne)
   .put(isAuth, isAdmin, orderController.updateOrder);
 
