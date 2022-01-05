@@ -24,7 +24,7 @@ router
 router.route("/:id/cancel").get(isAuth, isAdmin, orderController.cancelOrder);
 router
   .route("/:id/histories")
-  .get(isAuth, isAdmin, orderController.getHistoriesByOrderId);
+  .get(isAuth, orderController.getHistoriesByOrderId);
 
 router.route("/admin/report/:type").get(orderController.getStatisticalOrdersByPrice);
 router.route("/admin/report").get(orderController.getStatisticalOrders);

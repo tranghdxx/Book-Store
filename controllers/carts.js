@@ -6,15 +6,15 @@ const addCartHistory = async (req, res) => {
     const { id } = req.user;
     const { cart } = req.body;
 
-    if (cart && cart.length > 0)
-      await CartHistory.findOneAndUpdate(
-        { user: id },
-        {
-          user: id,
-          cart: cart,
-        },
-        { new: true, upsert: true }
-      );
+    await CartHistory.findOneAndUpdate(
+      { user: id },
+      {
+        user: id,
+        cart: cart ? cart : [],
+      },
+      { new: true, upsert: true }
+    );
+
     res.json({ success: true });
   } catch (error) {
     console.log(error);
